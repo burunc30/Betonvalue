@@ -1,4 +1,3 @@
-
 import requests
 from bs4 import BeautifulSoup
 import os
@@ -26,7 +25,7 @@ def fetch_surebets():
         if not table:
             return "Surebet məlumatları tapılmadı."
 
-        rows = table.find_all("tr")[1:]  # Bütün surebetləri al
+        rows = table.find_all("tr")[1:]
         messages = []
         for row in rows:
             cols = row.find_all("td")
