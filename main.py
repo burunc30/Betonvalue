@@ -5,7 +5,7 @@ import telebot
 
 USERNAME = "burunc"
 PASSWORD = "131313"
-TELEGRAM_TOKEN = "6531255230:AAHY9i...tRCY"
+TELEGRAM_TOKEN = "8106341353:AAFIi3nfPOlydtCM_eYHiSIbDR0C1RFoaG4"
 TELEGRAM_CHAT_ID = "1488455191"
 
 LOGIN_URL = "https://www.betonvalue.com/en/logmein/"
