@@ -2,8 +2,8 @@ name: Scrape Betonvalue
 
 on:
   workflow_dispatch:
+  schedule:
     - cron: "*/30 * * * *"
-  workflow_dispatch:
 
 jobs:
   run-script:
