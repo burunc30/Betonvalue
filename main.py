@@ -3,10 +3,10 @@ from bs4 import BeautifulSoup
 import os
 import telebot
 
-USERNAME = os.getenv("BETONVALUE_USERNAME")
-PASSWORD = os.getenv("BETONVALUE_PASSWORD")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+USERNAME = "burunc"
+PASSWORD = "131313"
+TELEGRAM_TOKEN = "6531255230:AAHY9i...tRCY"
+TELEGRAM_CHAT_ID = "1488455191"
 
 LOGIN_URL = "https://www.betonvalue.com/en/logmein/"
 SUREBETS_URL = "https://www.betonvalue.com/en/tools/surebets"
@@ -15,13 +15,15 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 def fetch_surebets():
     with requests.Session() as session:
-        login = session.post(LOGIN_URL, data={
+        session.post(LOGIN_URL, data={
             "userName": USERNAME,
             "password": PASSWORD
         })
+
         response = session.get(SUREBETS_URL)
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table", {"id": "surebet_table"})
+
         if not table:
             return "Surebet məlumatları tapılmadı."
 
@@ -36,9 +38,7 @@ def fetch_surebets():
                 profit = cols[6].get_text(strip=True)
                 messages.append(f"{game} | {odds1} vs {odds2} | Profit: {profit}")
 
-        if not messages:
-            return "Hazırda surebet yoxdur."
-        return "\n".join(messages)
+        return "\n".join(messages) if messages else "Hazırda surebet yoxdur."
 
 def main():
     try:
