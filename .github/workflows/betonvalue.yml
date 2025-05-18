@@ -2,7 +2,7 @@ name: BetonValue Scraper
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/15 * * * *"  # Hər 15 dəqiqədə bir işləsin
   workflow_dispatch:
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11  # buranı dəyişdik
+          python-version: 3.11
 
       - name: Install dependencies
         run: pip install -r requirements.txt
