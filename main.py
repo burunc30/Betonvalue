@@ -15,17 +15,25 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 def fetch_surebets():
     with requests.Session() as session:
-        session.post(LOGIN_URL, data={
+        login_response = session.post(LOGIN_URL, data={
             "userName": USERNAME,
             "password": PASSWORD
         })
 
+        if login_response.status_code != 200:
+            return f"Login alınmadı. Status: {login_response.status_code}"
+
         response = session.get(SUREBETS_URL)
+
+        # DEBUG: HTML cavab faylına yaz
+        with open("debug_response.html", "w", encoding="utf-8") as f:
+            f.write(response.text)
+
         soup = BeautifulSoup(response.text, "html.parser")
         table = soup.find("table", {"id": "surebet_table"})
 
         if not table:
-            return "Surebet məlumatları tapılmadı."
+            return "Surebet məlumatları tapılmadı. HTML yazılıb: debug_response.html"
 
         rows = table.find_all("tr")[1:]
         messages = []
@@ -44,6 +52,12 @@ def main():
     try:
         message = fetch_surebets()
         bot.send_message(TELEGRAM_CHAT_ID, message)
+
+        # HTML faylını da göndər
+        if os.path.exists("debug_response.html"):
+            with open("debug_response.html", "rb") as file:
+                bot.send_document(TELEGRAM_CHAT_ID, file)
+
     except Exception as e:
         bot.send_message(TELEGRAM_CHAT_ID, f"Xəta baş verdi: {e}")
 
