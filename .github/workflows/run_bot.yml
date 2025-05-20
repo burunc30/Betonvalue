@@ -1,25 +1,39 @@
-name: Surebet Bot
+name: Run Betonvalue Surebet Bot
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Hər 30 dəqiqədə bir
+    - cron: "*/30 * * * *"  # Hər 30 dəqiqədən bir
   workflow_dispatch:
 
 jobs:
-  run-surebet:
+  run-bot:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Kodun klonlanması
-      uses: actions/checkout@v3
+      - name: Repo-nu klonla
+        uses: actions/checkout@v3
 
-    - name: Python quraşdırılması
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
+      - name: Python 3.10 quraşdır
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    - name: Asılılıqların quraşdırılması
-      run: pip install requests beautifulsoup4 pytelegrambotapi
+      - name: Chrome və ChromeDriver quraşdır
+        run: |
+          sudo apt update
+          sudo apt install -y wget unzip xvfb
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+          wget -N https://chromedriver.storage.googleapis.com/${CHROME_VERSION}/chromedriver_linux64.zip || wget -N https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
 
-    - name: Botun işə salınması
-      run: python main.py
+      - name: Lazımi Python paketlərini quraşdır
+        run: |
+          pip install selenium python-telegram-bot==13.15
+
+      - name: Boti işə sal
+        run: |
+          python main.py
