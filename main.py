@@ -1,65 +1,62 @@
-import requests
-from bs4 import BeautifulSoup
-import os
-import telebot
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
+import telegram
 
 USERNAME = "burunc"
 PASSWORD = "131313"
 TELEGRAM_TOKEN = "8106341353:AAFIi3nfPOlydtCM_eYHiSIbDR0C1RFoaG4"
 TELEGRAM_CHAT_ID = "1488455191"
 
-LOGIN_URL = "https://www.betonvalue.com/en/logmein/"
-SUREBETS_URL = "https://www.betonvalue.com/en/tools/surebets"
-
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
-
 def fetch_surebets():
-    with requests.Session() as session:
-        login_response = session.post(LOGIN_URL, data={
-            "userName": USERNAME,
-            "password": PASSWORD
-        })
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    driver = webdriver.Chrome(options=options)
 
-        if login_response.status_code != 200:
-            return f"Login alınmadı. Status: {login_response.status_code}"
+    try:
+        driver.get("https://www.betonvalue.com/sign-in/")
+        time.sleep(3)
 
-        response = session.get(SUREBETS_URL)
+        # Tap və daxil et
+        username_input = driver.find_element(By.NAME, "username")
+        password_input = driver.find_element(By.NAME, "password")
+        login_button = driver.find_element(By.XPATH, "//button[@type='submit']")
 
-        # DEBUG: HTML cavab faylına yaz
-        with open("debug_response.html", "w", encoding="utf-8") as f:
-            f.write(response.text)
+        username_input.send_keys(USERNAME)
+        password_input.send_keys(PASSWORD)
+        login_button.click()
+        time.sleep(5)
 
-        soup = BeautifulSoup(response.text, "html.parser")
-        table = soup.find("table", {"id": "surebet_table"})
+        # Surebet səhifəsinə keç
+        driver.get("https://www.betonvalue.com/en/tools/surebets")
+        time.sleep(5)
 
-        if not table:
-            return "Surebet məlumatları tapılmadı. HTML yazılıb: debug_response.html"
-
-        rows = table.find_all("tr")[1:]
+        # Surebet cədvəlini oxu
+        rows = driver.find_elements(By.CSS_SELECTOR, "table#surebet_table tbody tr")
         messages = []
         for row in rows:
-            cols = row.find_all("td")
+            cols = row.find_elements(By.TAG_NAME, "td")
             if len(cols) >= 7:
-                game = cols[0].get_text(strip=True)
-                odds1 = cols[2].get_text(strip=True)
-                odds2 = cols[4].get_text(strip=True)
-                profit = cols[6].get_text(strip=True)
+                game = cols[0].text.strip()
+                odds1 = cols[2].text.strip()
+                odds2 = cols[4].text.strip()
+                profit = cols[6].text.strip()
                 messages.append(f"{game} | {odds1} vs {odds2} | Profit: {profit}")
 
         return "\n".join(messages) if messages else "Hazırda surebet yoxdur."
 
-def main():
-    try:
-        message = fetch_surebets()
-        bot.send_message(TELEGRAM_CHAT_ID, message)
-
-        # HTML faylını da göndər
-        if os.path.exists("debug_response.html"):
-            with open("debug_response.html", "rb") as file:
-                bot.send_document(TELEGRAM_CHAT_ID, file)
-
     except Exception as e:
-        bot.send_message(TELEGRAM_CHAT_ID, f"Xəta baş verdi: {e}")
+        return f"Xəta baş verdi: {e}"
+    finally:
+        driver.quit()
+
+def send_to_telegram(message):
+    bot = telegram.Bot(token=TELEGRAM_TOKEN)
+    bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
 
 if __name__ == "__main__":
-    main()
+    msg = fetch_surebets()
+    send_to_telegram(msg)
