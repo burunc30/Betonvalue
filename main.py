@@ -1,36 +1,36 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-import time
+"/surebets")]')))
+        send_message("Login uÄŸurla tamamlandÄ±.")
+        return True
 
-print("BOT BAŞLADI")
+    except Exception as e:
+        send_message(f"Login zamanÄ± xÉ™ta baÅŸ verdi: {e}")
+        return False
 
-# Chrome üçün headless konfiqurasiya
-options = Options()
-options.add_argument("--headless=new")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--no-sandbox")
+def main():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
 
-# Driver başlat
-driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=chrome_options)
 
-try:
-    # Sayta keçid et
-    driver.get("https://www.betonvalue.com")
-    time.sleep(5)
-    
-    print("Sayt açıldı:", driver.title)
+    if not login(driver):
+        driver.quit()
+        return
 
-    # Burada sadəcə saytı açırıq. Əlavə scraping kodlarını sən əlavə edəcəksən
-    # Məsələn:
-    surebet_elements = driver.find_elements(By.CLASS_NAME, "surebet-row")
-    if surebet_elements:
-        print(f"{len(surebet_elements)} surebet tapıldı.")
-    else:
-        print("Surebet məlumatı tapılmadı.")
-    
-except Exception as e:
-    print("Xəta baş verdi:", e)
+    try:
+        driver.get("https://www.betonvalue.com/en/surebets/")
+        time.sleep(3)
+        page_source = driver.page_source
 
-finally:
-    driver.quit()
+        if "No surebets found" in page_source or "0 surebets" in page_source:
+            send_message("Surebet mÉ™lumatlarÄ± tapÄ±lmadÄ±.")
+        else:
+            send_message("Surebet tapÄ±ldÄ±. ÆtraflÄ± yoxlanmalÄ±dÄ±r.")
+    except Exception as e:
+        send_message(f"Surebet sÉ™hifÉ™sindÉ™ xÉ™ta baÅŸ verdi: {e}")
+    finally:
+        driver.quit()
+
+if __name__ == "__main__":
+    main()
