@@ -1,32 +1,29 @@
 import time
-import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import requests
+
+BOT_TOKEN = "8106341353:AAFIi3nfPOlydtCM_eYHiSIbDR0C1RFoaG4"
+CHAT_ID = "1488455191"
 
 def send_message(message):
-    token = "8106341353:AAFIi3nfPOlydtCM_eYHiSIbDR0C1RFoaG4"
-    chat_id = "1488455191"
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    data = {"chat_id": chat_id, "text": message}
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {"chat_id": CHAT_ID, "text": message}
     try:
-        response = requests.post(url, data=data)
-        if response.status_code != 200:
-            print(f"Telegram xətası: {response.text}")
-    except Exception as e:
-        print(f"Telegram mesaj xəta: {e}")
+        requests.post(url, data=data)
+    except:
+        pass
 
 def login(driver):
     try:
         driver.get("https://www.betonvalue.com/en/login/")
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys("burunc")
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys("burunc")
         driver.find_element(By.NAME, "password").send_keys("131313")
         driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
-        
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/surebets')]")))
-
+        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/surebets')]")))
         send_message("Login uğurla tamamlandı.")
         return True
     except Exception as e:
