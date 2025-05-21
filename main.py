@@ -1,9 +1,27 @@
-"/surebets")]')))
-        send_message("Login uÄŸurla tamamlandÄ±.")
-        return True
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
+def send_message(message):
+    print(message)
+
+def login(driver):
+    try:
+        driver.get("https://www.betonvalue.com/en/login/")
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys("burunc")
+        driver.find_element(By.NAME, "password").send_keys("131313")
+        driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+        
+        # Login sonrası surebets səhifəsinə yönləndiriləcəyini gözləyirik
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/surebets')]")))
+
+        send_message("Login uğurla tamamlandı.")
+        return True
     except Exception as e:
-        send_message(f"Login zamanÄ± xÉ™ta baÅŸ verdi: {e}")
+        send_message(f"Login zamanı xəta baş verdi: {e}")
         return False
 
 def main():
@@ -24,11 +42,11 @@ def main():
         page_source = driver.page_source
 
         if "No surebets found" in page_source or "0 surebets" in page_source:
-            send_message("Surebet mÉ™lumatlarÄ± tapÄ±lmadÄ±.")
+            send_message("Surebet məlumatları tapılmadı.")
         else:
-            send_message("Surebet tapÄ±ldÄ±. ÆtraflÄ± yoxlanmalÄ±dÄ±r.")
+            send_message("Surebet tapıldı. Ətraflı yoxlanmalıdır.")
     except Exception as e:
-        send_message(f"Surebet sÉ™hifÉ™sindÉ™ xÉ™ta baÅŸ verdi: {e}")
+        send_message(f"Surebet səhifəsində xəta baş verdi: {e}")
     finally:
         driver.quit()
 
