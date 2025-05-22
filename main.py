@@ -6,24 +6,36 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import requests
 
+# Telegram konfiqurasiyası
 BOT_TOKEN = "8106341353:AAFIi3nfPOlydtCM_eYHiSIbDR0C1RFoaG4"
 CHAT_ID = "1488455191"
 
 def send_message(message):
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = {"chat_id": CHAT_ID, "text": message}
     try:
-        requests.post(url, data=data)
-    except:
-        pass
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": CHAT_ID,
+            "text": message,
+            "parse_mode": "HTML"
+        }
+        requests.post(url, data=payload)
+    except Exception as e:
+        print(f"Telegrama mesaj göndərmək alınmadı: {e}")
 
 def login(driver):
     try:
         driver.get("https://www.betonvalue.com/en/login/")
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys("burunc")
+
+        # Diaqnostika üçün səhifənin HTML kodunu göndəririk
+        send_message(driver.page_source[:4000])
+
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys("burunc")
         driver.find_element(By.NAME, "password").send_keys("131313")
         driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/surebets')]")))
+
+        # Girişdən sonra surebets səhifəsinə keçid gözlənilir
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//a[contains(@href, '/surebets')]")))
+
         send_message("Login uğurla tamamlandı.")
         return True
     except Exception as e:
