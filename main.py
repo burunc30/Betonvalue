@@ -1,30 +1,41 @@
 import time
-import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+import requests
 
+# Telegram konfiqurasiyası
 BOT_TOKEN = "8106341353:AAFIi3nfPOlydtCM_eYHiSIbDR0C1RFoaG4"
 CHAT_ID = "1488455191"
 
 def send_message(message):
     try:
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-        payload = {"chat_id": CHAT_ID, "text": message[:4000]}
+        payload = {
+            "chat_id": CHAT_ID,
+            "text": message[:4096],  # Telegram mesaj limiti
+            "parse_mode": "HTML"
+        }
         requests.post(url, data=payload)
     except Exception as e:
-        print("Mesaj xətası:", e)
+        print(f"Telegrama mesaj göndərmək alınmadı: {e}")
 
 def login(driver):
     try:
         driver.get("https://www.betonvalue.com/en/login/")
+        time.sleep(5)  # Səhifənin tam yüklənməsi üçün gözləmə
+
+        # Diaqnostik: Login səhifəsinin HTML kodunu göndər
+        page_html = driver.page_source
+        send_message("Login səhifəsi yükləndi:\n" + page_html[:3500])
+
         WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.NAME, "username"))).send_keys("burunc")
         driver.find_element(By.NAME, "password").send_keys("131313")
         driver.find_element(By.XPATH, "//button[contains(text(), 'Login')]").click()
+
         WebDriverWait(driver, 15).until(EC.url_contains("/surebets"))
         send_message("Login uğurla tamamlandı.")
         return True
@@ -38,8 +49,7 @@ def main():
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
     if not login(driver):
         driver.quit()
@@ -47,13 +57,15 @@ def main():
 
     try:
         driver.get("https://www.betonvalue.com/en/surebets/")
-        time.sleep(5)
-        if "No surebets found" in driver.page_source or "0 surebets" in driver.page_source:
-            send_message("Surebet tapılmadı.")
+        time.sleep(3)
+        page_source = driver.page_source
+
+        if "No surebets found" in page_source or "0 surebets" in page_source:
+            send_message("Surebet məlumatları tapılmadı.")
         else:
-            send_message("Surebet tapıldı.")
+            send_message("Surebet tapıldı. Ətraflı yoxlanmalıdır.")
     except Exception as e:
-        send_message(f"Surebet səhifəsində xəta: {e}")
+        send_message(f"Surebet səhifəsində xəta baş verdi: {e}")
     finally:
         driver.quit()
 
